@@ -18,6 +18,7 @@ namespace Movies2018
 
         public int CustID { get; set; }
         public int MovieID { get; set; }
+        public int RMID { get; set; }
 
         public Database()
         {
@@ -61,6 +62,18 @@ namespace Movies2018
         {
             DataTable dt = new DataTable();
             using (da = new SqlDataAdapter("select * from RentedMovies", Connection))
+            {
+                Connection.Open();
+                da.Fill(dt);
+                Connection.Close();
+            }
+            return dt;
+        }
+
+        public DataTable FillDgvUnretuned()
+        {
+            DataTable dt = new DataTable();
+            using (da = new SqlDataAdapter("SELECT * from RentedMovies WHERE DateReturned = ''", Connection))
             {
                 Connection.Open();
                 da.Fill(dt);
@@ -191,6 +204,63 @@ namespace Movies2018
             Connection.Open();
             myCommand.ExecuteNonQuery();
             Connection.Close();
+        }
+
+        public string ReturnMovie(string ID, string Date)
+        {
+            try
+            {
+                string query = "UPDATE RentedMovies set DateReturned = @Date WHERE RMID = @ID";
+                var myCommand = new SqlCommand(query, Connection);
+
+                myCommand.Parameters.AddWithValue("Date", Date);
+                myCommand.Parameters.AddWithValue("ID", ID);
+
+
+
+                Connection.Open();
+                myCommand.ExecuteNonQuery();
+                Connection.Close();
+
+                return "Return is Successful";
+
+            }
+            catch (Exception e)
+            {
+                //need to get it to close a second time as it jumps the first connection.close if ExecuteNonQuery fails.
+                Connection.Close();
+
+                return "Return has Failed with " + e.ToString();
+            }
+        }
+
+        public string RentMovie(string RMID, int MovieIDFK, int CustIDFK, string DateRented, string DateReturned)
+        {
+            try
+            {
+                string query = "INSERT INTO RentedMovies (MovieIDFK, CustIDFK, DateRented, DateReturned) VALUES (@MovieIDFK, @CustIDFK, @DateRented, @DateReturned)";
+                var myCommand = new SqlCommand(query, Connection);
+
+                myCommand.Parameters.Add("@MovieIDFK", MovieIDFK);
+                myCommand.Parameters.AddWithValue("@CustIDFK", CustIDFK);
+                myCommand.Parameters.AddWithValue("@DateRented", DateRented);
+                myCommand.Parameters.AddWithValue("@DateReturned", DateReturned);
+
+
+                Connection.Open();
+                myCommand.ExecuteNonQuery();
+                Connection.Close();
+
+                return "Return is Successful";
+
+            }
+            catch (Exception e)
+            {
+                //need to get it to close a second time as it jumps the first connection.close if ExecuteNonQuery fails.
+                Connection.Close();
+
+                return "Return has Failed with " + e.ToString();
+            }
         }
 
     }
